@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Tracker - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Job Tracker</h1>
+
+        <div id="message" class="message" style="display:none"></div>
+
+        <!-- Login Form -->
+        <div id="login-form">
+            <h2>Login</h2>
+            <input type="email" id="login-email" placeholder="Email" />
+            <input type="password" id="login-password" placeholder="Password" />
+            <button onclick="login()">Login</button>
+            <div class="toggle">
+                Don't have an account? 
+                <span onclick="showRegister()">Register</span>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" style="display:none">
+            <h2>Register</h2>
+            <input type="email" id="reg-email" placeholder="Email" />
+            <input type="password" id="reg-password" placeholder="Password" />
+            <button onclick="register()">Register</button>
+            <div class="toggle">
+                Already have an account? 
+                <span onclick="showLogin()">Login</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "http://127.0.0.1:8000";
+
+        function showMessage(msg, type) {
+            const el = document.getElementById("message");
+            el.textContent = msg;
+            el.className = `message ${type}`;
+            el.style.display = "block";
+            setTimeout(() => el.style.display = "none", 3000);
+        }
+
+        function showRegister() {
+            document.getElementById("login-form").style.display = "none";
+            document.getElementById("register-form").style.display = "block";
+        }
+
+        function showLogin() {
+            document.getElementById("register-form").style.display = "none";
+            document.getElementById("login-form").style.display = "block";
+        }
+
+        async function register() {
+            const email = document.getElementById("reg-email").value;
+            const password = document.getElementById("reg-password").value;
+
+            const res = await fetch(`${API}/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                showMessage("Registered successfully! Please login.", "success");
+                showLogin();
+            } else {
+                showMessage(data.detail, "error");
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById("login-email").value;
+            const password = document.getElementById("login-password").value;
+
+            const formData = new FormData();
+            formData.append("username", email);
+            formData.append("password", password);
+
+            const res = await fetch(`${API}/auth/login`, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem("token", data.access_token);
+                window.location.href = "dashboard.html";
+            } else {
+                showMessage(data.detail, "error");
+            }
+        }
+    </script>
+</body>
+</html>
